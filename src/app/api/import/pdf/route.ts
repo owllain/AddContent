@@ -1,9 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { processPdf } from 'firecrawl-pdf-inspector';
 import { marked } from 'marked';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
+    let processPdf: any;
+    try {
+      const mod = await import('firecrawl-pdf-inspector');
+      processPdf = mod.processPdf;
+    } catch {
+      return NextResponse.json({ 
+        error: 'La funcionalidad de importación de PDF no está disponible en este entorno.' 
+      }, { status: 501 });
+    }
+
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
 
@@ -30,8 +41,6 @@ export async function POST(req: NextRequest) {
     const lines = markdown.split('\n');
     if (lines.length > 0 && lines[0].startsWith('# ')) {
       title = lines[0].replace('# ', '').trim();
-      // Opcional: quitar el título del cuerpo para que no se duplique
-      // markdown = lines.slice(1).join('\n'); 
     }
 
     // Convertir Markdown a HTML
