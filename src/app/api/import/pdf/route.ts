@@ -2,16 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { marked } from 'marked';
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
   try {
-    let processPdf: any;
+    // Dynamic import para evitar errores de build en Vercel
+    let pdfParse: any;
     try {
-      const mod = await import('firecrawl-pdf-inspector');
-      processPdf = mod.processPdf;
+      pdfParse = (await import('pdf-parse')).default || require('pdf-parse');
     } catch {
       return NextResponse.json({ 
-        error: 'La funcionalidad de importación de PDF no está disponible en este entorno.' 
+        error: 'La funcionalidad de importación de PDF no está disponible en este entorno de servidor.' 
       }, { status: 501 });
     }
 
@@ -22,35 +23,39 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No se ha subido ningún archivo' }, { status: 400 });
     }
 
-    // Convertir el archivo a Buffer para pdf-inspector
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Procesar el PDF
-    const result = processPdf(buffer);
+    const data = await pdfParse(buffer);
 
-    if (!result || !result.markdown) {
+    if (!data.text || data.text.trim().length === 0) {
       return NextResponse.json({ 
         error: 'No se pudo extraer contenido del PDF. Asegúrate de que no esté protegido o vacío.' 
       }, { status: 422 });
     }
 
-    // Heurística simple para extraer el título (primera línea si empieza con #)
+    const lines = data.text.split('\n').filter((l: string) => l.trim().length > 0);
     let title = '';
-    let markdown = result.markdown;
-    const lines = markdown.split('\n');
-    if (lines.length > 0 && lines[0].startsWith('# ')) {
-      title = lines[0].replace('# ', '').trim();
+    let markdownLines: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (i === 0 && !title) {
+        title = line;
+        markdownLines.push(`# ${line}`);
+      } else {
+        markdownLines.push(line);
+      }
     }
 
-    // Convertir Markdown a HTML
+    const markdown = markdownLines.join('\n\n');
     const html = await marked.parse(markdown);
 
     return NextResponse.json({
       success: true,
-      title: title,
-      html: html,
-      pdfType: result.pdfType,
+      title,
+      html,
+      pages: data.numpages,
     });
 
   } catch (error: any) {
