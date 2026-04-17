@@ -44,13 +44,22 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'login') {
-      const { email, password } = body;
+      const { email: identifier, password } = body;
 
-      if (!email || !password) {
-        return NextResponse.json({ error: 'Correo y contraseña son requeridos' }, { status: 400 });
+      if (!identifier || !password) {
+        return NextResponse.json({ error: 'Credenciales requeridas' }, { status: 400 });
       }
 
-      const user = await db.user.findUnique({ where: { email } });
+      // Buscar por email O por cédula
+      const user = await db.user.findFirst({
+        where: {
+          OR: [
+            { email: identifier },
+            { cedula: identifier }
+          ]
+        }
+      });
+
       if (!user) {
         return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
       }

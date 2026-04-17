@@ -17,17 +17,33 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
       <FloatingNav />
-      <main className="flex-1">
+      <main className="flex-1 w-full max-w-[1280px] mx-auto px-4 md:px-0 min-h-[70vh]">
         {view === 'home' && (
-          <>
+          <div className="animate-in fade-in duration-500">
             <HeroSection />
             <HomeServices />
-          </>
+          </div>
         )}
-        {view === 'content' && <ContentViewer />}
-        {(view === 'admin' || view === 'admin-edit') && <AdminPanel />}
-        {view === 'admin-users' && <AdminUsersPanel />}
-        {(view === 'profile' || view === 'settings') && <ProfilePanel />}
+        {view === 'content' && (
+          <div className="animate-in fade-in duration-500">
+            <ContentViewer />
+          </div>
+        )}
+        {(view === 'admin' || view === 'admin-edit') && (
+          <div className="animate-in fade-in duration-500">
+            <AdminPanel />
+          </div>
+        )}
+        {view === 'admin-users' && (
+          <div className="animate-in fade-in duration-500">
+            <AdminUsersPanel />
+          </div>
+        )}
+        {(view === 'profile' || view === 'settings') && (
+          <div className="animate-in fade-in duration-500">
+            <ProfilePanel />
+          </div>
+        )}
       </main>
       <Footer />
       <AuthModals />
