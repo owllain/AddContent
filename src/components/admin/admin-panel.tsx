@@ -276,7 +276,7 @@ function NodeFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto rounded-[40px] p-6 md:p-8">
+      <DialogContent className="custom-scrollbar max-h-[92vh] w-[96vw] max-w-6xl overflow-y-auto rounded-[40px] p-6 pr-3 md:p-8 md:pr-4">
         <DialogHeader>
           <DialogTitle className="mc-h3">
             {isCreating ? 'Crear nuevo nodo' : 'Editar nodo'}

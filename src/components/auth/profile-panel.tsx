@@ -74,7 +74,7 @@ export default function ProfilePanel() {
               <span className="font-medium text-[var(--mc-ink)]">{currentUser.cedula || 'No registrada'}</span>
             </div>
             <div className="mt-4 rounded-xl bg-orange-50 p-4 text-[12px] text-orange-800">
-              <p>Tu nombre y cédula están administrados por Recursos Humanos. Si necesitas modificar estos datos centrales, contacta a un perfil <b>ADMIN</b>.</p>
+              <p>Tu nombre y cédula están administrados por el equipo de Desarrollo. Si necesitas modificar estos datos centrales, contacta a <b>TI</b>.</p>
             </div>
           </div>
         </div>

@@ -6,6 +6,7 @@ import AuthModals from '@/components/auth/auth-modals'
 import HeroSection from '@/components/layout/hero-section'
 import HomeServices from '@/components/home/home-services'
 import ContentViewer from '@/components/content/content-viewer'
+import FavoritesPanel from '@/components/content/favorites-panel'
 import AdminPanel from '@/components/admin/admin-panel'
 import AdminUsersPanel from '@/components/admin/admin-users'
 import ProfilePanel from '@/components/auth/profile-panel'
@@ -13,6 +14,7 @@ import { useAppStore } from '@/stores/app-store'
 
 export default function Home() {
   const view = useAppStore((s) => s.view)
+  const user = useAppStore((s) => s.user)
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -20,13 +22,18 @@ export default function Home() {
       <main className="flex-1 w-full max-w-[1280px] mx-auto px-4 md:px-0 min-h-[70vh]">
         {view === 'home' && (
           <div className="animate-in fade-in duration-500">
-            <HeroSection />
+            {!user && <HeroSection />}
             <HomeServices />
           </div>
         )}
         {view === 'content' && (
           <div className="animate-in fade-in duration-500">
             <ContentViewer />
+          </div>
+        )}
+        {view === 'favorites' && (
+          <div className="animate-in fade-in duration-500">
+            <FavoritesPanel />
           </div>
         )}
         {(view === 'admin' || view === 'admin-edit') && (

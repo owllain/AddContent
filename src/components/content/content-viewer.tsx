@@ -9,7 +9,7 @@ import { useAppStore } from '@/stores/app-store';
 import TreeNavigation from '@/components/content/tree-navigation';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Menu, ChevronRight, FileText, User, Calendar } from 'lucide-react';
+import { ArrowLeft, Menu, ChevronRight, FileText, User, Calendar, Star } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -50,7 +50,7 @@ function buildBreadcrumb(nodes: ApiNode[], selectedId: string): ApiNode[] {
 /* ---------- Main Component ---------- */
 
 export default function ContentViewer() {
-  const { selectedNodeId, setSelectedNodeId, setView } = useAppStore();
+  const { selectedNodeId, setSelectedNodeId, setView, user, isFavoriteNode, toggleFavoriteNode } = useAppStore();
   const [treeSheetOpen, setTreeSheetOpen] = useState(false);
 
   const { data: allNodes, isLoading } = useQuery<ApiNode[]>({
@@ -202,7 +202,28 @@ export default function ContentViewer() {
               )}
 
               {/* Title */}
-              <h1 className="mc-h2">{selectedNode.title}</h1>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <h1 className="mc-h2">{selectedNode.title}</h1>
+                {user && (
+                  <button
+                    onClick={() => toggleFavoriteNode(selectedNode.id)}
+                    className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[13px] font-medium transition-colors ${
+                      isFavoriteNode(selectedNode.id)
+                        ? 'border-[var(--mc-light-signal-orange)] bg-[var(--mc-light-signal-orange)]/10 text-[var(--mc-light-signal-orange)]'
+                        : 'border-[var(--mc-dust-taupe)] text-[var(--mc-slate)] hover:text-[var(--mc-ink)]'
+                    }`}
+                  >
+                    <Star
+                      className={`h-4 w-4 ${
+                        isFavoriteNode(selectedNode.id)
+                          ? 'fill-[var(--mc-light-signal-orange)]'
+                          : ''
+                      }`}
+                    />
+                    {isFavoriteNode(selectedNode.id) ? 'En favoritos' : 'Guardar en favoritos'}
+                  </button>
+                )}
+              </div>
 
               {/* Meta info */}
               <div className="flex flex-wrap items-center gap-4 text-[13px] text-[var(--mc-slate)]">
