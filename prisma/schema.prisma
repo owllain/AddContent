@@ -1,0 +1,44 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  cedula    String   @unique
+  email     String   @unique
+  name      String
+  password  String
+  role      String   @default("VIEWER") // ADMIN, EDITOR, VIEWER
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  nodes Node[]
+}
+
+model Node {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  content   String   @default("") // HTML content
+  icon      String   @default("FileText") // Lucide icon name
+  order     Int      @default(0)
+  parentId  String?
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  authorId  String?
+
+  // Relations
+  parent   Node?     @relation("NodeTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children Node[]    @relation("NodeTree")
+  author   User?     @relation(fields: [authorId], references: [id], onDelete: SetNull)
+}

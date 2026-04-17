@@ -1,0 +1,613 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: 'Sofia Sans', var(--font-geist-sans), Arial, sans-serif;
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  /* Mastercard-inspired radii */
+  --radius-sm: 6px;
+  --radius-md: 20px;
+  --radius-lg: 40px;
+  --radius-xl: 999px;
+
+  /* Mastercard color tokens - registered as Tailwind utilities */
+  --color-mc-canvas: #F3F0EE;
+  --color-mc-canvas-lifted: #FCFBFA;
+  --color-mc-ink: #141413;
+  --color-mc-ink-warm: #262627;
+  --color-mc-slate: #696969;
+  --color-mc-granite: #555555;
+  --color-mc-graphite: #565656;
+  --color-mc-dust-taupe: #D1CDC7;
+  --color-mc-ghost-watermark: #E8E2DA;
+  --color-mc-signal-orange: #CF4500;
+  --color-mc-light-signal-orange: #F37338;
+  --color-mc-clay-brown: #9A3A0A;
+  --color-mc-link-blue: #3860BE;
+  --color-mc-soft-bone: #F4F4F4;
+  --color-mc-white: #FFFFFF;
+  --color-mc-mc-red: #EB001B;
+  --color-mc-mc-yellow: #F79E1B;
+
+  /* Mastercard shadows */
+  --shadow-nav: 0px 4px 24px 0px rgba(0, 0, 0, 0.04);
+  --shadow-elevated: 0px 24px 48px 0px rgba(0, 0, 0, 0.08);
+  --shadow-dramatic: 0px 70px 110px 0px rgba(0, 0, 0, 0.25);
+}
+
+:root {
+  /* Backward compat aliases for custom CSS classes */
+  --mc-canvas: #F3F0EE;
+  --mc-canvas-lifted: #FCFBFA;
+  --mc-ink: #141413;
+  --mc-ink-warm: #262627;
+  --mc-slate: #696969;
+  --mc-granite: #555555;
+  --mc-graphite: #565656;
+  --mc-dust-taupe: #D1CDC7;
+  --mc-ghost-watermark: #E8E2DA;
+  --mc-signal-orange: #CF4500;
+  --mc-light-signal-orange: #F37338;
+  --mc-clay-brown: #9A3A0A;
+  --mc-link-blue: #3860BE;
+  --mc-soft-bone: #F4F4F4;
+  --mc-white: #FFFFFF;
+  --mc-mc-red: #EB001B;
+  --mc-mc-yellow: #F79E1B;
+
+  --radius: 20px;
+  --background: #F3F0EE;
+  --foreground: #141413;
+  --card: #FCFBFA;
+  --card-foreground: #141413;
+  --popover: #FFFFFF;
+  --popover-foreground: #141413;
+  --primary: #141413;
+  --primary-foreground: #F3F0EE;
+  --secondary: #FFFFFF;
+  --secondary-foreground: #141413;
+  --muted: #E8E2DA;
+  --muted-foreground: #696969;
+  --accent: #F3F0EE;
+  --accent-foreground: #141413;
+  --destructive: #CF4500;
+  --border: rgba(20, 20, 19, 0.15);
+  --input: rgba(20, 20, 19, 0.5);
+  --ring: #3860BE;
+  --chart-1: #F37338;
+  --chart-2: #CF4500;
+  --chart-3: #9A3A0A;
+  --chart-4: #141413;
+  --chart-5: #3860BE;
+  --sidebar: #F3F0EE;
+  --sidebar-foreground: #141413;
+  --sidebar-primary: #141413;
+  --sidebar-primary-foreground: #F3F0EE;
+  --sidebar-accent: #E8E2DA;
+  --sidebar-accent-foreground: #141413;
+  --sidebar-border: rgba(20, 20, 19, 0.1);
+  --sidebar-ring: #3860BE;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-mc-canvas text-mc-ink;
+    font-family: 'Sofia Sans', var(--font-geist-sans), Arial, sans-serif;
+  }
+}
+
+/* Mastercard Typography Utilities */
+.mc-h1 {
+  font-size: 64px;
+  font-weight: 500;
+  line-height: 64px;
+  letter-spacing: -1.28px;
+  color: var(--mc-ink);
+}
+
+.mc-h2 {
+  font-size: 36px;
+  font-weight: 500;
+  line-height: 44px;
+  letter-spacing: -0.72px;
+  color: var(--mc-ink);
+}
+
+.mc-h3 {
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 28.8px;
+  letter-spacing: -0.48px;
+  color: var(--mc-ink);
+}
+
+.mc-h4 {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 18.2px;
+  letter-spacing: normal;
+  color: var(--mc-ink);
+}
+
+.mc-eyebrow {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 14px;
+  letter-spacing: 0.56px;
+  text-transform: uppercase;
+  color: var(--mc-ink);
+}
+
+.mc-body {
+  font-size: 16px;
+  font-weight: 450;
+  line-height: 22.4px;
+  letter-spacing: normal;
+  color: var(--mc-ink);
+}
+
+.mc-nav-link {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: -0.48px;
+  color: var(--mc-ink);
+}
+
+.mc-footer-link {
+  font-size: 14px;
+  font-weight: 450;
+  line-height: 20px;
+  letter-spacing: normal;
+}
+
+.mc-footer-header {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 14px;
+  letter-spacing: 0.56px;
+  text-transform: uppercase;
+}
+
+.mc-ghost-watermark {
+  font-size: 96px;
+  font-weight: 500;
+  line-height: 96px;
+  letter-spacing: -1.92px;
+  color: var(--mc-ghost-watermark);
+}
+
+/* Primary CTA - Ink Pill */
+.mc-btn-primary {
+  background-color: var(--mc-ink);
+  color: var(--mc-canvas);
+  border: 1.5px solid var(--mc-ink);
+  border-radius: 20px;
+  padding: 6px 24px;
+  font-family: 'Sofia Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.48px;
+  line-height: 16px;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mc-btn-primary:active {
+  transform: scale(0.97);
+}
+
+/* Secondary CTA - Outlined Pill */
+.mc-btn-secondary {
+  background-color: var(--mc-white);
+  color: var(--mc-ink);
+  border: 1.5px solid var(--mc-ink);
+  border-radius: 20px;
+  padding: 6px 24px;
+  font-family: 'Sofia Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 450;
+  line-height: 20.8px;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mc-btn-secondary:active {
+  transform: scale(0.97);
+}
+
+/* Consent CTA - Orange Pill */
+.mc-btn-consent {
+  background-color: var(--mc-signal-orange);
+  color: var(--mc-white);
+  border: none;
+  border-radius: 24px;
+  padding: 1px 30px;
+  font-family: 'Sofia Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.13px;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.mc-btn-consent:active {
+  transform: scale(0.97);
+}
+
+/* Scrollbar styling */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--mc-dust-taupe);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--mc-slate);
+}
+
+/* Content HTML styles (for rendered node content) */
+.node-content h1 {
+  font-size: 36px;
+  font-weight: 500;
+  line-height: 44px;
+  letter-spacing: -0.72px;
+  color: var(--mc-ink);
+  margin-bottom: 16px;
+}
+
+.node-content h2 {
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 34px;
+  letter-spacing: -0.56px;
+  color: var(--mc-ink);
+  margin-bottom: 14px;
+}
+
+.node-content h3 {
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 26.4px;
+  letter-spacing: -0.44px;
+  color: var(--mc-ink);
+  margin-bottom: 12px;
+}
+
+.node-content h4 {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 20.8px;
+  color: var(--mc-ink);
+  margin-bottom: 10px;
+}
+
+.node-content p {
+  font-size: 16px;
+  font-weight: 450;
+  line-height: 28px;
+  color: var(--mc-ink);
+  margin-bottom: 16px;
+}
+
+.node-content ul, .node-content ol {
+  margin-bottom: 16px;
+  padding-left: 24px;
+}
+
+.node-content li {
+  font-size: 16px;
+  font-weight: 450;
+  line-height: 28px;
+  color: var(--mc-ink);
+  margin-bottom: 4px;
+}
+
+.node-content ul li {
+  list-style-type: disc;
+}
+
+.node-content ol li {
+  list-style-type: decimal;
+}
+
+.node-content a {
+  color: var(--mc-link-blue);
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.node-content a:hover {
+  opacity: 0.75;
+}
+
+.node-content blockquote {
+  border-left: 3px solid var(--mc-light-signal-orange);
+  padding-left: 16px;
+  margin: 16px 0;
+  color: var(--mc-granite);
+  font-style: italic;
+}
+
+.node-content code {
+  background: var(--mc-canvas-lifted);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.node-content pre {
+  background: var(--mc-ink);
+  color: var(--mc-canvas);
+  padding: 20px;
+  border-radius: 20px;
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+
+.node-content pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+
+.node-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+
+.node-content th, .node-content td {
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--mc-dust-taupe);
+}
+
+.node-content th {
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.56px;
+}
+
+.node-content img {
+  border-radius: 20px;
+  max-width: 100%;
+  margin: 24px auto;
+  display: block;
+  box-shadow: var(--shadow-nav);
+  border: 1px solid var(--mc-dust-taupe);
+}
+
+.node-content .mc-card {
+  background: var(--mc-canvas-lifted);
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.node-content .mc-highlight-box {
+  background: rgba(243, 115, 56, 0.08);
+  border-left: 4px solid var(--mc-light-signal-orange);
+  border-radius: 0 20px 20px 0;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+
+.node-content .mc-info-box {
+  background: rgba(56, 96, 190, 0.06);
+  border-left: 4px solid var(--mc-link-blue);
+  border-radius: 0 20px 20px 0;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+}
+
+/* --- New Premium Templates --- */
+
+/* 1. Paso a Paso (Steps) */
+.mc-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  margin: 32px 0;
+  position: relative;
+}
+
+.mc-step {
+  display: flex;
+  gap: 20px;
+  position: relative;
+}
+
+.mc-step::before {
+  content: "";
+  position: absolute;
+  left: 20px;
+  top: 40px;
+  bottom: -32px;
+  width: 2px;
+  background: var(--mc-dust-taupe);
+  z-index: 0;
+}
+
+.mc-step:last-child::before {
+  display: none;
+}
+
+.mc-step-number {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--mc-light-signal-orange);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+  box-shadow: 0 4px 10px rgba(243, 115, 56, 0.3);
+  z-index: 1;
+}
+
+.mc-step-content {
+  flex: 1;
+}
+
+.mc-step-content h4 {
+  margin-bottom: 8px;
+  font-size: 18px;
+}
+
+/* 2. Acordeones Modernos */
+.mc-accordion {
+  border: 1px solid var(--mc-dust-taupe);
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  background: var(--mc-white);
+}
+
+.mc-accordion-item {
+  border-bottom: 1px solid var(--mc-dust-taupe);
+}
+
+.mc-accordion-item:last-child {
+  border-bottom: none;
+}
+
+.mc-accordion-trigger {
+  width: 100%;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  color: var(--mc-ink);
+  cursor: pointer;
+  background: transparent;
+  transition: background 0.2s;
+}
+
+.mc-accordion-trigger:hover {
+  background: var(--mc-canvas-lifted);
+}
+
+.mc-accordion-content {
+  padding: 0 24px 24px;
+  color: var(--mc-slate);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* 3. Cards Informativas */
+.mc-display-card {
+  background: var(--mc-canvas-lifted);
+  border: 1.5px solid var(--mc-dust-taupe);
+  border-radius: 40px;
+  padding: 32px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 32px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.mc-display-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-nav);
+}
+
+.mc-display-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle at top right, var(--mc-light-signal-orange), transparent 70%);
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+
+/* Responsive typography */
+@media (max-width: 767px) {
+  .mc-h1 {
+    font-size: 40px;
+    line-height: 42px;
+    letter-spacing: -0.8px;
+  }
+  .mc-h2 {
+    font-size: 28px;
+    line-height: 34px;
+    letter-spacing: -0.56px;
+  }
+  .mc-ghost-watermark {
+    font-size: 56px;
+    line-height: 60px;
+    letter-spacing: -1.12px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .mc-h1 {
+    font-size: 48px;
+    line-height: 50px;
+    letter-spacing: -0.96px;
+  }
+  .mc-ghost-watermark {
+    font-size: 72px;
+    line-height: 76px;
+    letter-spacing: -1.44px;
+  }
+}
