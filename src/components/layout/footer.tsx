@@ -76,7 +76,7 @@ export default function Footer() {
       <div className="border-t border-white/20">
         <div className="mx-auto flex max-w-[1280px] flex-col items-start justify-between gap-4 px-6 py-6 md:flex-row md:items-center md:px-16">
           <p className="mc-footer-link text-[var(--mc-slate)]">
-            © {new Date().getFullYear()} Plataforma Intranet CMS. Todos los derechos reservados.
+            © {new Date().getFullYear()} Plataforma AddContent. Todos los derechos reservados.
           </p>
 
           {/* Country Selector Pill */}

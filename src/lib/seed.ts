@@ -7,14 +7,14 @@ export async function seedDatabase() {
 
   // Upsert admin user
   const admin = await db.user.upsert({
-    where: { email: 'admin@intranet.com' },
+    where: { email: 'admin@addcontent.com' },
     update: {
       password: adminPassword,
       cedula: '100000001',
       role: 'ADMIN',
     },
     create: {
-      email: 'admin@intranet.com',
+      email: 'admin@addcontent.com',
       name: 'Administrador',
       cedula: '100000001',
       password: adminPassword,
@@ -24,14 +24,14 @@ export async function seedDatabase() {
 
   // Upsert editor user
   const editor = await db.user.upsert({
-    where: { email: 'editor@intranet.com' },
+    where: { email: 'editor@addcontent.com' },
     update: {
       password: editorPassword,
       cedula: '100000002',
       role: 'EDITOR',
     },
     create: {
-      email: 'editor@intranet.com',
+      email: 'editor@addcontent.com',
       name: 'Editor de Contenido',
       cedula: '100000002',
       password: editorPassword,
@@ -113,6 +113,6 @@ export async function seedDatabase() {
   });
 
   console.log('✅ Database seeded successfully!');
-  console.log('📧 Admin: admin@intranet.com / admin123 (Cédula: 100000001)');
-  console.log('📧 Editor: editor@intranet.com / editor123 (Cédula: 100000002)');
+  console.log('📧 Admin: admin@addcontent.com / admin123 (Cédula: 100000001)');
+  console.log('📧 Editor: editor@addcontent.com / editor123 (Cédula: 100000002)');
 }

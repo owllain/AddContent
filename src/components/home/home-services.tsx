@@ -26,9 +26,9 @@ interface ApiNode {
 
 /* ---------- Helpers ---------- */
 
-function NodeIcon({ name, className }: { name: string; className?: string }) {
-  const Icon = (LucideIcons as Record<string, React.ComponentType<{ className?: string }>>)[name] || LucideIcons.FileText;
-  return <Icon className={className} />;
+function NodeIcon({ name, className, style }: { name: string; className?: string; style?: React.CSSProperties }) {
+  const Icon = (LucideIcons as any)[name] || LucideIcons.FileText;
+  return <Icon className={className} style={style} />;
 }
 
 /* Gradient palettes for service cards (warm tones) */

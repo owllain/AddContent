@@ -7,9 +7,12 @@ export const runtime = 'nodejs';
 export async function POST(req: NextRequest) {
   try {
     // Dynamic import para evitar errores de build en Vercel
-    let pdfParse: any;
+    let pdfParse: (buffer: Buffer) => Promise<{ text: string; numpages: number }>;
     try {
-      pdfParse = (await import('pdf-parse')).default || require('pdf-parse');
+      const pdfParseModule = await import('pdf-parse');
+      pdfParse =
+        (pdfParseModule as unknown as { default?: typeof pdfParse }).default ??
+        (pdfParseModule as unknown as typeof pdfParse);
     } catch {
       return NextResponse.json({ 
         error: 'La funcionalidad de importación de PDF no está disponible en este entorno de servidor.' 

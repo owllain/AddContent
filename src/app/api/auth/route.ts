@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     if (action === 'register') {
       const { email, name, password, cedula } = body;
 
-      if (!email || !name || !password) {
+      if (!email || !name || !password || !cedula) {
         return NextResponse.json({ error: 'Todos los campos son requeridos' }, { status: 400 });
       }
 
@@ -23,6 +23,10 @@ export async function POST(request: NextRequest) {
       const existing = await db.user.findUnique({ where: { email } });
       if (existing) {
         return NextResponse.json({ error: 'Este correo ya está registrado' }, { status: 409 });
+      }
+      const existingCedula = await db.user.findUnique({ where: { cedula } });
+      if (existingCedula) {
+        return NextResponse.json({ error: 'Esta cédula ya está registrada' }, { status: 409 });
       }
 
       const hashedPassword = await hashPassword(password);
@@ -69,7 +73,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
       }
 
-      // Create session token (simple JWT-like approach for intranet)
+      // Create session token (simple JWT-like approach for AddContent)
       const token = Buffer.from(JSON.stringify({
         id: user.id,
         email: user.email,
@@ -86,10 +90,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    return NextResponse.json({ error: 'Acción no válida' }, { status: 400 });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Auth error:', error);
-    return NextResponse.json({ error: 'Error del servidor' }, { status: 500 });
+    return NextResponse.json({ error: error?.message || 'Error del servidor' }, { status: 500 });
   }
 }
 

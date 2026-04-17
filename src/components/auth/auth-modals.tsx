@@ -157,8 +157,8 @@ export default function AuthModals() {
 
           <div className="mt-6 flex flex-col gap-4">
             <input
-              type="email"
-              placeholder="Correo electrónico"
+              type="text"
+              placeholder="Correo electrónico o cédula"
               value={loginEmail}
               onChange={(e) => setLoginEmail(e.target.value)}
               className={inputClassName}

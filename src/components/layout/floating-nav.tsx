@@ -10,8 +10,6 @@ export default function FloatingNav() {
     setView,
     user,
     setUser,
-    selectedNodeId,
-    showLoginModal,
     setShowLoginModal,
     mobileMenuOpen,
     setMobileMenuOpen,
@@ -42,9 +40,11 @@ export default function FloatingNav() {
     setMobileMenuOpen(false);
   };
 
-  const navLinks = [
-    { label: 'Inicio', target: 'home' as const, active: view === 'home' },
-    { label: 'Contenido', target: 'content' as const, active: view === 'content' },
+  type NavLinkType = { label: string; target: 'home' | 'content' | 'admin' | 'admin-users' | 'profile' | 'settings'; active: boolean; disabled?: boolean };
+
+  const navLinks: NavLinkType[] = [
+    { label: 'Inicio', target: 'home', active: view === 'home' },
+    { label: 'Contenido', target: 'content', active: view === 'content' },
     ...(isEditor ? [{ label: 'Administrar', target: 'admin' as const, active: view === 'admin' || view === 'admin-edit' }] : []),
     ...(isAdmin ? [{ label: 'Usuarios', target: 'admin-users' as const, active: view === 'admin-users' }] : []),
   ];
@@ -64,7 +64,7 @@ export default function FloatingNav() {
             aria-label="Inicio"
           >
             <span className="text-[18px] font-bold tracking-tight text-[var(--mc-ink)]">
-              IntraNet <span className="text-[var(--mc-light-signal-orange)]">CMS</span>
+              AddContent
             </span>
           </button>
 

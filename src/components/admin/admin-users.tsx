@@ -97,7 +97,7 @@ export default function AdminUsersPanel() {
         <div>
           <h1 className="mc-h1 mb-2 text-[32px] md:text-[40px]">Gestión de Usuarios</h1>
           <p className="mc-body text-[16px] text-[var(--mc-slate)]">
-            Crea cuentas y asigna niveles de acceso en la intranet.
+            Crea cuentas y asigna niveles de acceso en AddContent.
           </p>
         </div>
         <button onClick={openCreateModal} className="mc-btn-primary flex items-center gap-2">

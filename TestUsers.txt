@@ -1,6 +1,6 @@
 | Rol | Email | Password |
 |-----|-------|----------|
-| **ADMIN** | admin@intranet.com | admin123 |
-| **EDITOR** | editor@intranet.com | editor123 |
+| **ADMIN** | admin@addcontent.com | admin123 |
+| **EDITOR** | editor@addcontent.com | editor123 |
 | **VIEWER** | (crear desde UI) | (elegir) |
 

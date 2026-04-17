@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { MDXEditorMethods } from '@mdxeditor/editor';
 import { useAppStore } from '@/stores/app-store';
 import TreeNavigation from '@/components/content/tree-navigation';
 import { toast } from 'sonner';
@@ -13,21 +14,14 @@ import {
   Trash2,
   Eye,
   EyeOff,
-  FolderPlus,
   ShieldAlert,
-  Check,
-  X,
   Menu,
   FileUp,
   Loader2,
   Info,
-  AlertTriangle,
-  Copy,
-  FileText,
   ListOrdered,
   ChevronDown,
   Layout,
-  Search,
 } from 'lucide-react';
 import {
   Dialog,
@@ -90,7 +84,7 @@ interface ApiNode {
 /* ---------- Icon Helper ---------- */
 
 function NodeIcon({ name, className }: { name: string; className?: string }) {
-  const Icon = (LucideIcons as Record<string, React.ComponentType<{ className?: string }>>)[name] || LucideIcons.FileText;
+  const Icon = (LucideIcons as any)[name] || LucideIcons.FileText;
   return <Icon className={className} />;
 }
 
@@ -158,7 +152,16 @@ function NodeFormDialog({
   const [parentId, setParentId] = useState<string | null>(editingNode?.parentId || defaultParentId || null);
   const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const editorRef = React.useRef<any>(null);
+  const editorRef = React.useRef<MDXEditorMethods | null>(null);
+
+  const insertTemplateSnippet = (snippet: string) => {
+    try {
+      editorRef.current?.insertMarkdown(snippet);
+    } catch {
+      // Fallback: append at the end when the editor cursor API is unavailable.
+      setContent((prev) => `${prev}${snippet}`);
+    }
+  };
 
   const handleImportPdf = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -361,13 +364,7 @@ function NodeFormDialog({
                     <button
                       key={item.label}
                       type="button"
-                      onClick={() => {
-                        if (editorRef.current) {
-                          editorRef.current.insertMarkdown(item.snippet);
-                        } else {
-                          setContent(prev => prev + item.snippet);
-                        }
-                      }}
+                      onClick={() => insertTemplateSnippet(item.snippet)}
                       className="flex items-center gap-1 rounded-[12px] border border-[var(--mc-dust-taupe)] bg-[var(--mc-canvas)] px-2.5 py-1 text-[11px] font-medium text-[var(--mc-slate)] transition-colors hover:bg-[var(--mc-white)] hover:text-[var(--mc-ink)]"
                       title={`Insertar ${item.label}`}
                     >
@@ -532,17 +529,27 @@ export default function AdminPanel() {
     },
   });
 
-  // Node map for parent lookup
-  const nodeMap = useMemo(() => {
-    if (!allNodes) return new Map<string, ApiNode>();
-    return new Map(allNodes.map((n) => [n.id, n]));
-  }, [allNodes]);
-
   // Sort nodes
   const sortedNodes = useMemo(() => {
     if (!allNodes) return [];
     return [...allNodes].sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
   }, [allNodes]);
+
+  const childrenByParentId = useMemo(() => {
+    const map = new Map<string | null, ApiNode[]>();
+
+    for (const node of sortedNodes) {
+      const key = node.parentId ?? null;
+      const siblings = map.get(key);
+      if (siblings) {
+        siblings.push(node);
+      } else {
+        map.set(key, [node]);
+      }
+    }
+
+    return map;
+  }, [sortedNodes]);
 
   // Create mutation
   const createMutation = useMutation({
@@ -657,7 +664,10 @@ export default function AdminPanel() {
     published: boolean;
   }) => {
     if (data.id) {
-      updateMutation.mutate(data);
+      updateMutation.mutate({
+        ...data,
+        id: data.id,
+      });
     } else {
       createMutation.mutate(data);
     }
@@ -769,20 +779,10 @@ export default function AdminPanel() {
           ) : (
             <div className="flex flex-col gap-2">
               {(() => {
-                // Hierarchical render helper
                 const renderTree = (nodes: ApiNode[], depth: number = 0): React.ReactNode[] => {
-                  const roots = nodes.filter(n => (!n.parentId || !nodeMap.has(n.parentId)) && depth === 0) 
-                               || nodes.filter(n => n.parentId === (nodes[0]?.parentId || null));
-                  
-                  // If we are at depth 0, we only want the actual roots
-                  const currentLevel = depth === 0 
-                    ? nodes.filter(n => !n.parentId || !nodeMap.has(n.parentId))
-                    : nodes;
+                  return nodes.map((node) => {
+                    const children = childrenByParentId.get(node.id) || [];
 
-                  return currentLevel.map((node) => {
-                    const children = allNodes?.filter(n => n.parentId === node.id) || [];
-                    const parentNode = node.parentId ? nodeMap.get(node.parentId) : null;
-                    
                     return (
                       <React.Fragment key={node.id}>
                         <div
@@ -871,7 +871,8 @@ export default function AdminPanel() {
                   });
                 };
 
-                return renderTree(sortedNodes.filter(n => !n.parentId || !nodeMap.has(n.parentId)));
+                const rootNodes = childrenByParentId.get(null) || [];
+                return renderTree(rootNodes);
               })()}
             </div>
           )}

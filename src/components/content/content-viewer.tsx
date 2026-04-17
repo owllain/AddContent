@@ -39,10 +39,10 @@ function buildBreadcrumb(nodes: ApiNode[], selectedId: string): ApiNode[] {
     nodeMap.set(n.id, n);
   }
   const breadcrumb: ApiNode[] = [];
-  let current = nodeMap.get(selectedId);
+  let current: ApiNode | undefined = nodeMap.get(selectedId);
   while (current) {
     breadcrumb.unshift(current);
-    current = current.parentId ? nodeMap.get(current.parentId) : null;
+    current = current.parentId ? nodeMap.get(current.parentId) : undefined;
   }
   return breadcrumb;
 }
@@ -50,7 +50,7 @@ function buildBreadcrumb(nodes: ApiNode[], selectedId: string): ApiNode[] {
 /* ---------- Main Component ---------- */
 
 export default function ContentViewer() {
-  const { selectedNodeId, setView } = useAppStore();
+  const { selectedNodeId, setSelectedNodeId, setView } = useAppStore();
   const [treeSheetOpen, setTreeSheetOpen] = useState(false);
 
   const { data: allNodes, isLoading } = useQuery<ApiNode[]>({
@@ -177,18 +177,25 @@ export default function ContentViewer() {
               {/* Breadcrumb */}
               {breadcrumb.length > 0 && (
                 <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1.5 text-[13px] text-[var(--mc-slate)]">
+                  <button
+                    onClick={handleVolver}
+                    className="transition-colors hover:text-[var(--mc-ink)]"
+                  >
+                    Inicio
+                  </button>
                   {breadcrumb.map((crumb, index) => (
                     <React.Fragment key={crumb.id}>
-                      {index > 0 && <ChevronRight className="h-3 w-3 shrink-0" />}
-                      <span
+                      <ChevronRight className="h-3 w-3 shrink-0" />
+                      <button
+                        onClick={() => setSelectedNodeId(crumb.id)}
                         className={`transition-colors ${
                           index === breadcrumb.length - 1
                             ? 'font-medium text-[var(--mc-ink)]'
                             : 'hover:text-[var(--mc-ink)]'
                         }`}
                       >
-                        {index === 0 ? 'Inicio' : crumb.title}
-                      </span>
+                        {crumb.title}
+                      </button>
                     </React.Fragment>
                   ))}
                 </nav>

@@ -7,8 +7,8 @@ async function main() {
   const SALT_ROUNDS = 12;
   
   const users = [
-    { name: 'Admin User', email: 'admin@intranet.com', password: 'admin123', role: 'ADMIN' },
-    { name: 'Editor User', email: 'editor@intranet.com', password: 'editor123', role: 'EDITOR' },
+    { name: 'Admin User', email: 'admin@addcontent.com', password: 'admin123', role: 'ADMIN', cedula: '100000001' },
+    { name: 'Editor User', email: 'editor@addcontent.com', password: 'editor123', role: 'EDITOR', cedula: '100000002' },
   ];
 
   for (const u of users) {
@@ -17,12 +17,13 @@ async function main() {
     
     await prisma.user.upsert({
       where: { email: u.email },
-      update: { password: hashedPassword, role: u.role },
+      update: { password: hashedPassword, role: u.role, cedula: u.cedula, name: u.name },
       create: { 
         name: u.name, 
         email: u.email, 
         password: hashedPassword, 
-        role: u.role 
+        role: u.role,
+        cedula: u.cedula,
       },
     });
     console.log(`Usuario ${u.email} listo.`);

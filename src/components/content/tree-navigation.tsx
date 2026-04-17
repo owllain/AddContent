@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAppStore } from '@/stores/app-store';
 import { Search, ChevronRight, ChevronDown, FileQuestion } from 'lucide-react';
@@ -94,7 +94,7 @@ function filterTree(nodes: TreeNode[], query: string): TreeNode[] {
 }
 
 function NodeIcon({ name, className }: { name: string; className?: string }) {
-  const Icon = (LucideIcons as Record<string, React.ComponentType<{ className?: string }>>)[name] || LucideIcons.FileText;
+  const Icon = (LucideIcons as any)[name] || LucideIcons.FileText;
   return <Icon className={className} />;
 }
 
@@ -122,11 +122,6 @@ function TreeNodeItem({ node, depth, expandedIds, selectedId, mode, onToggle, on
     if (hasChildren && !isExpanded) {
       onToggle(node.id);
     }
-  };
-
-  const handleSelect = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onSelect(node.id);
   };
 
   return (
@@ -216,6 +211,24 @@ export default function TreeNavigation({ mode = 'published', className = '' }: T
     const fullTree = buildTree(allNodes);
     return filterTree(fullTree, searchQuery);
   }, [allNodes, searchQuery]);
+
+  useEffect(() => {
+    if (!selectedNodeId) return;
+    if (!allNodes?.length) return;
+
+    const parentById = new Map(allNodes.map((node) => [node.id, node.parentId]));
+    const nextExpanded = new Set<string>();
+    let currentParent = parentById.get(selectedNodeId) ?? null;
+
+    while (currentParent) {
+      nextExpanded.add(currentParent);
+      currentParent = parentById.get(currentParent) ?? null;
+    }
+
+    if (nextExpanded.size > 0) {
+      setExpandedIds((prev) => new Set([...prev, ...nextExpanded]));
+    }
+  }, [selectedNodeId, allNodes]);
 
   const handleToggle = (id: string) => {
     setExpandedIds((prev) => {

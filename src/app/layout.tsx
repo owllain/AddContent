@@ -11,7 +11,7 @@ const sofiaSans = Sofia_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "IntraNet CMS — Centro de Conocimiento",
+  title: "AddContent — Centro de Conocimiento",
   description: "Plataforma de gestión de conocimiento corporativa. Reemplazo de WordPress con soporte para contenido HTML en árbol de nodos.",
 };
 

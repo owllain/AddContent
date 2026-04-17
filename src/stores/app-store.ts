@@ -65,7 +65,7 @@ export const useAppStore = create<AppState>()(
       setEditingParentId: (id) => set({ editingParentId: id }),
     }),
     {
-      name: 'intranet-cms-storage',
+      name: 'addcontent-storage',
       partialize: (state) => ({ user: state.user }),
     }
   )
