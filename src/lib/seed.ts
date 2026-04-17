@@ -16,6 +16,7 @@ export async function seedDatabase() {
     data: {
       email: 'admin@intranet.com',
       name: 'Administrador',
+      cedula: '100000001',
       password: adminPassword,
       role: 'ADMIN',
     },
@@ -27,6 +28,7 @@ export async function seedDatabase() {
     data: {
       email: 'editor@intranet.com',
       name: 'Editor de Contenido',
+      cedula: '100000002',
       password: editorPassword,
       role: 'EDITOR',
     },
