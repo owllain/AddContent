@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { hashPassword, verifyPassword } from '@/lib/auth';
+import { handleApiError } from '@/lib/error-handler';
 
 // POST /api/auth/register
 export async function POST(request: NextRequest) {
@@ -114,7 +115,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
     }
   } catch (error) {
-    console.error('Session error:', error);
-    return NextResponse.json({ error: 'Error del servidor' }, { status: 500 });
+    return handleApiError(error, 'GET /api/auth/session');
   }
 }

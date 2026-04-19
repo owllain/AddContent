@@ -1,7 +1,16 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type ViewMode = 'home' | 'content' | 'favorites' | 'admin' | 'admin-edit' | 'admin-users' | 'profile' | 'settings';
+export type ViewMode =
+  | 'home'
+  | 'content'
+  | 'favorites'
+  | 'admin'
+  | 'admin-edit'
+  | 'admin-users'
+  | 'profile'
+  | 'settings'
+  | 'nodes-management'; // NUEVA VISTA
 
 interface AppState {
   // Navigation / view
@@ -47,7 +56,13 @@ export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       view: 'home',
-      setView: (view) => set({ view }),
+      setView: (view) => {
+        // Al cambiar de vista, si no es una de edición, limpiamos los IDs de edición
+        if (view !== 'nodes-management' && view !== 'admin-edit') {
+          set({ editingNodeId: null, editingParentId: null });
+        }
+        set({ view });
+      },
 
       selectedNodeId: null,
       setSelectedNodeId: (id) => set({ selectedNodeId: id, view: id ? 'content' : 'home' }),

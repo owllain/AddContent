@@ -8,6 +8,7 @@ import HomeServices from '@/components/home/home-services'
 import ContentViewer from '@/components/content/content-viewer'
 import FavoritesPanel from '@/components/content/favorites-panel'
 import AdminPanel from '@/components/admin/admin-panel'
+import NodesManagementView from '@/components/admin/nodes-management-view'
 import AdminUsersPanel from '@/components/admin/admin-users'
 import ProfilePanel from '@/components/auth/profile-panel'
 import { useAppStore } from '@/stores/app-store'
@@ -39,6 +40,11 @@ export default function Home() {
         {(view === 'admin' || view === 'admin-edit') && (
           <div className="animate-in fade-in duration-500">
             <AdminPanel />
+          </div>
+        )}
+        {view === 'nodes-management' && (
+          <div className="animate-in fade-in duration-500">
+            <NodesManagementView />
           </div>
         )}
         {view === 'admin-users' && (

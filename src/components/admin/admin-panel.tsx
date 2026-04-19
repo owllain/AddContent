@@ -111,361 +111,6 @@ function generateSlug(title: string): string {
     .replace(/(^-|-$)/g, '');
 }
 
-/* ---------- Node Form Dialog ---------- */
-
-interface NodeFormDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  editingNode: ApiNode | null;
-  defaultParentId?: string | null;
-  allNodes: ApiNode[];
-  onSave: (data: {
-    id?: string;
-    title: string;
-    slug: string;
-    content: string;
-    icon: string;
-    parentId: string | null;
-    published: boolean;
-  }) => void;
-  isSaving: boolean;
-}
-
-function NodeFormDialog({
-  open,
-  onOpenChange,
-  editingNode,
-  defaultParentId,
-  allNodes,
-  onSave,
-  isSaving,
-}: NodeFormDialogProps) {
-  const isCreating = !editingNode;
-
-  // Initialize state from props (component uses key pattern for remount)
-  const [title, setTitle] = useState(editingNode?.title || '');
-  const [slugOverride, setSlugOverride] = useState(editingNode?.slug || '');
-  const [slugIsManual, setSlugIsManual] = useState(!!editingNode);
-  const [icon, setIcon] = useState(editingNode?.icon || 'FileText');
-  const [content, setContent] = useState(editingNode?.content || '');
-  const [published, setPublished] = useState(editingNode?.published ?? true);
-  const [parentId, setParentId] = useState<string | null>(editingNode?.parentId || defaultParentId || null);
-  const [isImporting, setIsImporting] = useState(false);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const editorRef = React.useRef<MDXEditorMethods | null>(null);
-
-  const insertTemplateSnippet = (snippet: string) => {
-    try {
-      editorRef.current?.insertMarkdown(snippet);
-    } catch {
-      // Fallback: append at the end when the editor cursor API is unavailable.
-      setContent((prev) => `${prev}${snippet}`);
-    }
-  };
-
-  const handleImportPdf = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.type !== 'application/pdf') {
-      toast.error('Por favor, selecciona un archivo PDF válido');
-      return;
-    }
-
-    setIsImporting(true);
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const res = await fetch('/api/import/pdf', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!res.ok) {
-        let errMsg = 'Error al procesar el PDF';
-        try {
-          const errData = await res.json();
-          errMsg = errData.error || errMsg;
-        } catch {
-          errMsg = `Error del servidor de importación (Status ${res.status})`;
-        }
-        throw new Error(errMsg);
-      }
-
-      const textualData = await res.text();
-      let data;
-      try {
-        data = JSON.parse(textualData);
-      } catch (e) {
-        throw new Error('La respuesta del servidor no es código JSON válido. Servidor potencialmente desconectado.');
-      }
-      
-      // Sustituir contenido
-      setContent(data.html);
-      
-      // Intentar auto-rellenar título si se encontró uno y el campo está vacío
-      if (data.title && !title.trim()) {
-        handleTitleChange(data.title);
-      }
-
-      toast.success('PDF importado correctamente');
-    } catch (err: any) {
-      console.error(err);
-      toast.error(err.message || 'Error al importar PDF');
-    } finally {
-      setIsImporting(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
-
-  // Derive slug: auto-generate from title unless user manually edited
-  const displaySlug = slugIsManual ? slugOverride : generateSlug(title);
-
-  const handleTitleChange = (newTitle: string) => {
-    setTitle(newTitle);
-    if (!slugIsManual) {
-      setSlugOverride(generateSlug(newTitle));
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim() || !displaySlug.trim()) return;
-    onSave({
-      ...(editingNode ? { id: editingNode.id } : {}),
-      title: title.trim(),
-      slug: displaySlug.trim(),
-      content,
-      icon,
-      parentId,
-      published,
-    });
-  };
-
-  // Build parent options with indentation
-  const parentOptions = useMemo(() => {
-    const nodeMap = new Map<string, ApiNode>();
-    for (const n of allNodes) nodeMap.set(n.id, n);
-
-    const buildOptions = (nodes: ApiNode[], depth: number): { id: string; title: string; depth: number }[] => {
-      const result: { id: string; title: string; depth: number }[] = [];
-      const roots = nodes.filter((n) => !n.parentId || !nodeMap.has(n.parentId));
-      for (const root of roots) {
-        result.push({ id: root.id, title: root.title, depth });
-        const children = nodes.filter((n) => n.parentId === root.id);
-        result.push(...buildOptions(children, depth + 1));
-      }
-      return result;
-    };
-
-    return buildOptions(allNodes, 0);
-  }, [allNodes]);
-
-  // Filter out the current node and its descendants from parent options
-  const filteredParentOptions = useMemo(() => {
-    if (!editingNode) return parentOptions;
-    const excludeIds = new Set<string>();
-    const collectDescendants = (id: string) => {
-      excludeIds.add(id);
-      allNodes.filter((n) => n.parentId === id).forEach((n) => collectDescendants(n.id));
-    };
-    collectDescendants(editingNode.id);
-    return parentOptions.filter((opt) => !excludeIds.has(opt.id));
-  }, [parentOptions, editingNode, allNodes]);
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="custom-scrollbar max-h-[92vh] w-[96vw] max-w-6xl overflow-y-auto rounded-[40px] p-6 pr-3 md:p-8 md:pr-4">
-        <DialogHeader>
-          <DialogTitle className="mc-h3">
-            {isCreating ? 'Crear nuevo nodo' : 'Editar nodo'}
-          </DialogTitle>
-          <DialogDescription className="text-[14px] text-[var(--mc-slate)]">
-            {isCreating
-              ? 'Completa los campos para crear un nuevo nodo de contenido.'
-              : 'Modifica los campos del nodo.'}
-          </DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5 py-2">
-          {/* Title */}
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="node-title" className="text-[13px] font-medium">
-              Título *
-            </Label>
-            <Input
-              id="node-title"
-              value={title}
-              onChange={(e) => handleTitleChange(e.target.value)}
-              placeholder="Título del nodo"
-              className="rounded-[20px] border-[var(--mc-dust-taupe)] bg-[var(--mc-white)]"
-              required
-            />
-          </div>
-
-          {/* Slug */}
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="node-slug" className="text-[13px] font-medium">
-              Slug *
-            </Label>
-            <Input
-              id="node-slug"
-              value={displaySlug}
-              onChange={(e) => {
-                setSlugOverride(e.target.value);
-                setSlugIsManual(true);
-              }}
-              placeholder="url-del-nodo"
-              className="rounded-[20px] border-[var(--mc-dust-taupe)] bg-[var(--mc-white)] font-mono text-[13px]"
-              required
-            />
-          </div>
-
-          {/* Icon Selector */}
-          <div className="flex flex-col gap-2">
-            <Label className="text-[13px] font-medium">Icono</Label>
-            <div className="custom-scrollbar grid max-h-[200px] grid-cols-6 gap-1.5 overflow-y-auto rounded-[20px] border border-[var(--mc-dust-taupe)] bg-[var(--mc-white)] p-3 sm:grid-cols-8 md:grid-cols-10">
-              {AVAILABLE_ICONS.map((iconName) => {
-                const isSelected = icon === iconName;
-                return (
-                  <button
-                    key={iconName}
-                    type="button"
-                    onClick={() => setIcon(iconName)}
-                    title={iconName}
-                    className={`flex h-9 w-full items-center justify-center rounded-[12px] transition-all ${
-                      isSelected
-                        ? 'bg-[var(--mc-light-signal-orange)] text-white shadow-sm'
-                        : 'bg-transparent text-[var(--mc-slate)] hover:bg-[var(--mc-canvas)] hover:text-[var(--mc-ink)]'
-                    }`}
-                  >
-                    <NodeIcon name={iconName} className="h-4 w-4" />
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Content with Snippets */}
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="node-content" className="text-[13px] font-medium">
-                Contenido (HTML)
-              </Label>
-              <div className="flex items-center gap-1.5">
-                <div className="flex flex-wrap gap-1.5">
-                  {[
-                    { label: 'Info Box', snippet: '\n<div class="mc-info-box">**INFO:** Contenido destacado aquí.</div>\n', icon: <Info className="h-3 w-3" /> },
-                    { label: 'Pasos 1-2-3', snippet: '\n<div class="mc-steps">\n  <div class="mc-step">\n    <div class="mc-step-number">1</div>\n    <div class="mc-step-content"><h4>Título del Paso</h4><p>Descripción del primer paso aquí.</p></div>\n  </div>\n  <div class="mc-step">\n    <div class="mc-step-number">2</div>\n    <div class="mc-step-content"><h4>Título del Paso</h4><p>Descripción del segundo paso aquí.</p></div>\n  </div>\n</div>\n', icon: <ListOrdered className="h-3 w-3" /> },
-                    { label: 'Acordeón', snippet: '\n<details class="mc-accordion">\n  <summary class="mc-accordion-trigger">Título de la Sección</summary>\n  <div class="mc-accordion-content">Contenido desplegable que ayuda a organizar la información densa.</div>\n</details>\n', icon: <ChevronDown className="h-3 w-3" /> },
-                    { label: 'Card Premium', snippet: '\n<div class="mc-display-card">\n  <h3>Título de la Card</h3>\n  <p>Este es un bloque destacado para resaltar información importante de manera visual.</p>\n</div>\n', icon: <Layout className="h-3 w-3" /> },
-                  ].map((item) => (
-                    <button
-                      key={item.label}
-                      type="button"
-                      onClick={() => insertTemplateSnippet(item.snippet)}
-                      className="flex items-center gap-1 rounded-[12px] border border-[var(--mc-dust-taupe)] bg-[var(--mc-canvas)] px-2.5 py-1 text-[11px] font-medium text-[var(--mc-slate)] transition-colors hover:bg-[var(--mc-white)] hover:text-[var(--mc-ink)]"
-                      title={`Insertar ${item.label}`}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
-                
-                <div className="h-4 w-px bg-[var(--mc-dust-taupe)]" />
-                
-                <input
-                  type="file"
-                  accept=".pdf"
-                  ref={fileInputRef}
-                  onChange={handleImportPdf}
-                  className="hidden"
-                />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isImporting}
-                  className="flex items-center gap-1.5 rounded-[12px] border border-[var(--mc-light-signal-orange)] bg-[var(--mc-light-signal-orange)]/10 px-3 py-1 text-[11px] font-bold text-[var(--mc-light-signal-orange)] transition-colors hover:bg-[var(--mc-light-signal-orange)] hover:text-white disabled:opacity-50"
-                >
-                  {isImporting ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <FileUp className="h-3 w-3" />
-                  )}
-                  {isImporting ? 'PROCESANDO...' : 'IMPORTAR PDF'}
-                </button>
-              </div>
-            </div>
-            
-            <VisualEditor
-              markdown={content}
-              onChange={setContent}
-              editorRef={editorRef}
-            />
-
-            <p className="text-[11px] text-[var(--mc-slate)] italic">
-              * El editor visual genera Markdown. Puedes usar los bloques predefinidos de arriba para insertar HTML avanzado.
-            </p>
-          </div>
-
-          {/* Published Toggle */}
-          <div className="flex items-center justify-between rounded-[20px] border border-[var(--mc-dust-taupe)] bg-[var(--mc-white)] p-4">
-            <div>
-              <Label className="text-[13px] font-medium">Publicado</Label>
-              <p className="text-[12px] text-[var(--mc-slate)]">
-                {published ? 'Visible para todos los usuarios' : 'Solo visible en administración'}
-              </p>
-            </div>
-            <Switch checked={published} onCheckedChange={setPublished} />
-          </div>
-
-          {/* Parent Node */}
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-[13px] font-medium">Nodo padre (opcional)</Label>
-            <Select
-              value={parentId || '__none__'}
-              onValueChange={(v) => setParentId(v === '__none__' ? null : v)}
-            >
-              <SelectTrigger className="w-full rounded-[20px] border-[var(--mc-dust-taupe)] bg-[var(--mc-white)]">
-                <SelectValue placeholder="Sin nodo padre (raíz)" />
-              </SelectTrigger>
-              <SelectContent className="max-h-[240px]">
-                <SelectItem value="__none__">Raíz (sin padre)</SelectItem>
-                {filteredParentOptions.map((opt) => (
-                  <SelectItem key={opt.id} value={opt.id}>
-                    {'  '.repeat(opt.depth)}
-                    {opt.depth > 0 && '└ '}
-                    {opt.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Actions */}
-          <DialogFooter className="gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="rounded-[20px] border-[var(--mc-ink)]"
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSaving || !title.trim() || !displaySlug.trim()}
-              className="rounded-[20px] bg-[var(--mc-ink)] text-[var(--mc-canvas)] hover:bg-[var(--mc-ink-warm)]"
-            >
-              {isSaving ? 'Guardando...' : isCreating ? 'Crear nodo' : 'Guardar cambios'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 /* ---------- Delete Confirmation Dialog ---------- */
 
@@ -506,15 +151,17 @@ function DeleteDialog({ open, onOpenChange, nodeTitle, onConfirm, isDeleting }: 
 /* ---------- Main Admin Panel ---------- */
 
 export default function AdminPanel() {
-  const { user } = useAppStore();
+  const {
+    user,
+    setView,
+    setEditingNodeId,
+    setEditingParentId,
+  } = useAppStore();
   const queryClient = useQueryClient();
 
   const isAdmin = user && (user.role === 'ADMIN' || user.role === 'EDITOR');
 
   // Dialog state
-  const [showFormDialog, setShowFormDialog] = useState(false);
-  const [editingNode, setEditingNode] = useState<ApiNode | null>(null);
-  const [defaultParentId, setDefaultParentId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ApiNode | null>(null);
   const [treeSheetOpen, setTreeSheetOpen] = useState(false);
 
@@ -551,47 +198,26 @@ export default function AdminPanel() {
     return map;
   }, [sortedNodes]);
 
-  // Create mutation
-  const createMutation = useMutation({
-    mutationFn: async (data: {
-      title: string;
-      slug: string;
-      content: string;
-      icon: string;
-      parentId: string | null;
-      published: boolean;
-      authorId?: string;
-    }) => {
-      const res = await fetch('/api/nodes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...data, authorId: user?.id }),
-      });
-      if (!res.ok) {
-        let errMsg = 'Error al crear nodo';
-        try {
-          const err = await res.json();
-          errMsg = err.error || errMsg;
-        } catch(e) {
-          errMsg = `Error del servidor (Status ${res.status})`;
-        }
-        throw new Error(errMsg);
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['nodes'] });
-      toast.success('Nodo creado correctamente');
-      setShowFormDialog(false);
-      setEditingNode(null);
-      setDefaultParentId(null);
-    },
-    onError: (error: Error) => {
-      toast.error(error.message);
-    },
-  });
+  // Redirection handlers to NodesManagementView
+  const handleCreate = () => {
+    setEditingNodeId(null);
+    setEditingParentId(null);
+    setView('nodes-management');
+  };
 
-  // Update mutation
+  const handleAddChild = (parentId: string) => {
+    setEditingNodeId(null);
+    setEditingParentId(parentId);
+    setView('nodes-management');
+  };
+
+  const handleEdit = (node: ApiNode) => {
+    setEditingNodeId(node.id);
+    setEditingParentId(null);
+    setView('nodes-management');
+  };
+
+  // Update mutation (used for toggle publish)
   const updateMutation = useMutation({
     mutationFn: async (data: {
       id: string;
@@ -622,9 +248,7 @@ export default function AdminPanel() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['nodes'] });
-      toast.success('Nodo actualizado correctamente');
-      setShowFormDialog(false);
-      setEditingNode(null);
+      toast.success('Estado actualizado correctamente');
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -651,47 +275,6 @@ export default function AdminPanel() {
   // Toggle publish
   const handleTogglePublish = (node: ApiNode) => {
     updateMutation.mutate({ id: node.id, published: !node.published });
-  };
-
-  // Form save handler
-  const handleFormSave = (data: {
-    id?: string;
-    title: string;
-    slug: string;
-    content: string;
-    icon: string;
-    parentId: string | null;
-    published: boolean;
-  }) => {
-    if (data.id) {
-      updateMutation.mutate({
-        ...data,
-        id: data.id,
-      });
-    } else {
-      createMutation.mutate(data);
-    }
-  };
-
-  // Open create dialog
-  const handleCreate = () => {
-    setEditingNode(null);
-    setDefaultParentId(null);
-    setShowFormDialog(true);
-  };
-
-  // Open create dialog with parent
-  const handleAddChild = (parentId: string) => {
-    setEditingNode(null);
-    setDefaultParentId(parentId);
-    setShowFormDialog(true);
-  };
-
-  // Open edit dialog
-  const handleEdit = (node: ApiNode) => {
-    setEditingNode(node);
-    setDefaultParentId(null);
-    setShowFormDialog(true);
   };
 
   // Permission denied
@@ -749,13 +332,6 @@ export default function AdminPanel() {
                 Gestiona los nodos de contenido del sistema
               </p>
             </div>
-            <button
-              onClick={handleCreate}
-              className="mc-btn-primary shrink-0 gap-2 px-6 py-3"
-            >
-              <Plus className="h-4 w-4" />
-              Crear nodo
-            </button>
           </div>
 
           {/* Node List (Hierarchical) */}
@@ -768,13 +344,12 @@ export default function AdminPanel() {
           ) : sortedNodes.length === 0 ? (
             <div className="flex flex-col items-center gap-4 rounded-[40px] bg-[var(--mc-canvas-lifted)] py-16 text-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--mc-ghost-watermark)]">
-                <Plus className="h-8 w-8 text-[var(--mc-slate)]" />
+                <Layout className="h-8 w-8 text-[var(--mc-slate)]" />
               </div>
               <p className="mc-body text-[var(--mc-slate)]">No hay nodos creados aún</p>
-              <button onClick={handleCreate} className="mc-btn-primary gap-2 px-6 py-2.5">
-                <Plus className="h-4 w-4" />
-                Crear primer nodo
-              </button>
+              <p className="text-[14px] text-[var(--mc-slate)] opacity-80 max-w-[300px]">
+                Usa la pestaña <strong>Maquetador</strong> para crear tu primer contenido.
+              </p>
             </div>
           ) : (
             <div className="flex flex-col gap-2">
@@ -878,24 +453,6 @@ export default function AdminPanel() {
           )}
         </div>
       </div>
-
-      {/* Create/Edit Dialog */}
-      <NodeFormDialog
-        key={editingNode?.id || `new-${defaultParentId || 'root'}`}
-        open={showFormDialog}
-        onOpenChange={(open) => {
-          setShowFormDialog(open);
-          if (!open) {
-            setEditingNode(null);
-            setDefaultParentId(null);
-          }
-        }}
-        editingNode={editingNode}
-        defaultParentId={defaultParentId}
-        allNodes={allNodes || []}
-        onSave={handleFormSave}
-        isSaving={createMutation.isPending || updateMutation.isPending}
-      />
 
       {/* Delete Confirmation */}
       <DeleteDialog

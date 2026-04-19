@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { handleApiError } from '@/lib/error-handler';
 
 // GET /api/nodes?parentId=null — Get tree structure
 export async function GET(request: NextRequest) {
@@ -63,9 +64,9 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json({ nodes });
+    return NextResponse.json({ nodes });
   } catch (error) {
-    console.error('Nodes GET error:', error);
-    return NextResponse.json({ error: 'Error del servidor' }, { status: 500 });
+    return handleApiError(error, 'GET /api/nodes');
   }
 }
 
@@ -107,9 +108,9 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ node }, { status: 201 });
+    return NextResponse.json({ node }, { status: 201 });
   } catch (error) {
-    console.error('Nodes POST error:', error);
-    return NextResponse.json({ error: 'Error del servidor' }, { status: 500 });
+    return handleApiError(error, 'POST /api/nodes');
   }
 }
 
@@ -141,9 +142,9 @@ export async function PUT(request: NextRequest) {
     });
 
     return NextResponse.json({ node });
+    return NextResponse.json({ node });
   } catch (error) {
-    console.error('Nodes PUT error:', error);
-    return NextResponse.json({ error: 'Error del servidor' }, { status: 500 });
+    return handleApiError(error, 'PUT /api/nodes');
   }
 }
 
@@ -159,8 +160,9 @@ export async function DELETE(request: NextRequest) {
 
     await db.node.delete({ where: { id } });
     return NextResponse.json({ success: true });
+    await db.node.delete({ where: { id } });
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Nodes DELETE error:', error);
-    return NextResponse.json({ error: 'Error del servidor' }, { status: 500 });
+    return handleApiError(error, 'DELETE /api/nodes');
   }
 }

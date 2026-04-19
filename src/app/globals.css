@@ -361,6 +361,27 @@
   list-style-type: decimal;
 }
 
+/* Fix for task lists (checklists) */
+.node-content ul li.task-list-item,
+.mdxeditor-rich ul li[class*="task-list-item"] {
+  list-style-type: none !important;
+  position: relative;
+  padding-left: 24px !important;
+  margin-left: 0 !important;
+}
+
+.node-content ul li.task-list-item input[type="checkbox"],
+.mdxeditor-rich ul li[class*="task-list-item"] input[type="checkbox"] {
+  position: absolute;
+  left: 0;
+  top: 7px;
+  margin: 0;
+  cursor: pointer;
+  width: 14px;
+  height: 14px;
+  accent-color: var(--mc-light-signal-orange);
+}
+
 .node-content a {
   color: var(--mc-link-blue);
   text-decoration: none;
@@ -454,22 +475,26 @@
 
 /* --- New Premium Templates --- */
 
-/* 1. Paso a Paso (Steps) */
+/* 1. Paso a Paso (Steps) - Ahora con Contadores CSS para evitar basura visual al borrar */
 .mc-steps {
   display: flex;
   flex-direction: column;
   gap: 32px;
   margin: 32px 0;
   position: relative;
+  counter-reset: mc-step-count;
 }
 
 .mc-step {
   display: flex;
   gap: 20px;
   position: relative;
+  counter-increment: mc-step-count;
+  min-height: 40px;
 }
 
-.mc-step::before {
+/* Línea conectora entre bolas */
+.mc-step::after {
   content: "";
   position: absolute;
   left: 20px;
@@ -480,11 +505,13 @@
   z-index: 0;
 }
 
-.mc-step:last-child::before {
+.mc-step:last-child::after {
   display: none;
 }
 
-.mc-step-number {
+/* Bola naranja generada automáticamente - solo si no está vacío o tiene contenido descriptivo */
+.mc-step:not(:empty)::before {
+  content: counter(mc-step-count);
   flex-shrink: 0;
   width: 40px;
   height: 40px;
@@ -500,6 +527,11 @@
   z-index: 1;
 }
 
+/* Evitar residuos visuales si el bloque es muy pequeño o solo contiene whitespace */
+.mc-step:empty::before, .mc-step:empty::after {
+  display: none !important;
+}
+
 .mc-step-content {
   flex: 1;
 }
@@ -509,25 +541,17 @@
   font-size: 18px;
 }
 
-/* 2. Acordeones Modernos */
-.mc-accordion {
+/* 2. Acordeones Modernos (Nativos con details/summary) */
+.node-content details.mc-accordion-item, .mdxeditor-rich details.mc-accordion-item {
   border: 1px solid var(--mc-dust-taupe);
   border-radius: 20px;
   overflow: hidden;
   margin-bottom: 16px;
   background: var(--mc-white);
+  transition: all 0.3s ease;
 }
 
-.mc-accordion-item {
-  border-bottom: 1px solid var(--mc-dust-taupe);
-}
-
-.mc-accordion-item:last-child {
-  border-bottom: none;
-}
-
-.mc-accordion-trigger {
-  width: 100%;
+.node-content details.mc-accordion-item summary, .mdxeditor-rich details.mc-accordion-item summary {
   padding: 16px 24px;
   display: flex;
   justify-content: space-between;
@@ -535,15 +559,37 @@
   font-weight: 600;
   color: var(--mc-ink);
   cursor: pointer;
+  list-style: none;
   background: transparent;
   transition: background 0.2s;
 }
 
-.mc-accordion-trigger:hover {
+.node-content details.mc-accordion-item summary::-webkit-details-marker,
+.mdxeditor-rich details.mc-accordion-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.node-content details.mc-accordion-item summary::after,
+.mdxeditor-rich details.mc-accordion-item summary::after {
+  content: "+";
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--mc-light-signal-orange);
+  transition: transform 0.3s ease;
+}
+
+.node-content details.mc-accordion-item[open] summary::after,
+.mdxeditor-rich details.mc-accordion-item[open] summary::after {
+  content: "−";
+  transform: rotate(180deg);
+}
+
+.node-content details.mc-accordion-item summary:hover,
+.mdxeditor-rich details.mc-accordion-item summary:hover {
   background: var(--mc-canvas-lifted);
 }
 
-.mc-accordion-content {
+.node-content .mc-accordion-content, .mdxeditor-rich .mc-accordion-content {
   padding: 0 24px 24px;
   color: var(--mc-slate);
   font-size: 15px;
@@ -610,4 +656,172 @@
     line-height: 76px;
     letter-spacing: -1.44px;
   }
+}
+
+/* --- Professional Component Library --- */
+
+/* 1. Grids & Layouts */
+.node-content .mc-grid-2, .mdxeditor-rich .mc-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin: 32px 0;
+}
+
+.node-content .mc-grid-3, .mdxeditor-rich .mc-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin: 32px 0;
+}
+
+@media (min-width: 768px) {
+  .node-content .mc-grid-2, .mdxeditor-rich .mc-grid-2 { grid-template-columns: 1fr 1fr; }
+  .node-content .mc-grid-3, .mdxeditor-rich .mc-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+}
+
+.node-content .mc-grid-col, .mdxeditor-rich .mc-grid-col {
+  background: var(--mc-white);
+  border: 1px solid var(--mc-dust-taupe);
+  border-radius: 24px;
+  padding: 24px;
+  height: 100%;
+}
+
+/* 2. Banner CTA */
+.node-content .mc-banner-cta, .mdxeditor-rich .mc-banner-cta {
+  background: linear-gradient(135deg, var(--mc-ink) 0%, var(--mc-ink-warm) 100%);
+  border-radius: 40px;
+  padding: 48px;
+  text-align: center;
+  color: var(--mc-white);
+  margin: 40px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.node-content .mc-banner-cta h2, .mdxeditor-rich .mc-banner-cta h2 { color: white; font-size: 32px; margin-bottom: 16px; }
+.node-content .mc-banner-cta p, .mdxeditor-rich .mc-banner-cta p { color: rgba(255,255,255,0.8); margin-bottom: 24px; }
+
+.node-content .mc-button-premium, .mdxeditor-rich .mc-button-premium {
+  background: var(--mc-light-signal-orange);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 32px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 10px 20px rgba(243, 115, 56, 0.2);
+}
+
+.node-content .mc-button-premium:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px rgba(243, 115, 56, 0.4);
+}
+
+/* 3. Multimedia (Video) */
+.node-content .mc-video-container, .mdxeditor-rich .mc-video-container {
+  position: relative;
+  padding-bottom: 56.25%; /* 16:9 */
+  height: 0;
+  overflow: hidden;
+  border-radius: 24px;
+  margin: 32px 0;
+  box-shadow: var(--shadow-nav);
+  border: 1px solid var(--mc-dust-taupe);
+}
+
+.node-content .mc-video-container iframe, .mdxeditor-rich .mc-video-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* 4. Tablas de Precios */
+.node-content .mc-price-table, .mdxeditor-rich .mc-price-table {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  margin: 32px 0;
+}
+
+@media (min-width: 768px) {
+  .node-content .mc-price-table, .mdxeditor-rich .mc-price-table { grid-template-columns: 1fr 1fr; }
+}
+
+.node-content .mc-price-item, .mdxeditor-rich .mc-price-item {
+  background: var(--mc-white);
+  border: 1.5px solid var(--mc-dust-taupe);
+  border-radius: 32px;
+  padding: 32px;
+  text-align: center;
+  transition: transform 0.3s;
+}
+
+.node-content .mc-price-item.active, .mdxeditor-rich .mc-price-item.active {
+  border-color: var(--mc-light-signal-orange);
+  box-shadow: 0 20px 40px rgba(243, 115, 56, 0.1);
+  transform: scale(1.05);
+  z-index: 2;
+}
+
+.node-content .mc-price-item h4, .mdxeditor-rich .mc-price-item h4 { font-size: 20px; margin-bottom: 8px; }
+.node-content .mc-price-item .price, .mdxeditor-rich .mc-price-item .price { font-size: 40px; font-weight: 800; color: var(--mc-ink); margin: 16px 0; }
+.node-content .mc-price-item ul, .mdxeditor-rich .mc-price-item ul { list-style: none; padding: 0; margin: 24px 0; }
+.node-content .mc-price-item li, .mdxeditor-rich .mc-price-item li { font-size: 14px; margin-bottom: 12px; border-bottom: 1px solid var(--mc-canvas); padding-bottom: 12px; }
+
+/* 5. Línea de Tiempo */
+.node-content .mc-timeline, .mdxeditor-rich .mc-timeline {
+  border-left: 2px solid var(--mc-dust-taupe);
+  margin: 32px 0 32px 20px;
+  padding-left: 32px;
+}
+
+.node-content .mc-timeline-item, .mdxeditor-rich .mc-timeline-item {
+  position: relative;
+  margin-bottom: 32px;
+}
+
+.node-content .mc-timeline-item::before, .mdxeditor-rich .mc-timeline-item::before {
+  content: "";
+  position: absolute;
+  left: -41px;
+  top: 4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--mc-white);
+  border: 3px solid var(--mc-light-signal-orange);
+}
+
+.node-content .mc-timeline-item .date, .mdxeditor-rich .mc-timeline-item .date {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--mc-light-signal-orange);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+/* 6. Alertas y Estados */
+.node-content .mc-alert-box, .mdxeditor-rich .mc-alert-box {
+  background: rgba(235, 0, 27, 0.05);
+  border-left: 4px solid var(--mc-mc-red);
+  border-radius: 0 16px 16px 0;
+  padding: 16px 24px;
+  margin-bottom: 20px;
+  color: #990000;
+}
+
+.node-content .mc-success-box, .mdxeditor-rich .mc-success-box {
+  background: rgba(34, 197, 94, 0.05);
+  border-left: 4px solid #22c55e;
+  border-radius: 0 16px 16px 0;
+  padding: 16px 24px;
+  margin-bottom: 20px;
+  color: #166534;
 }

@@ -4,8 +4,11 @@ import React, { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAppStore } from '@/stores/app-store';
 import * as LucideIcons from 'lucide-react';
-import { ArrowRight, FolderOpen } from 'lucide-react';
+import { ArrowRight, Search, Sparkles, Filter, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 /* ---------- Types ---------- */
 
@@ -68,103 +71,56 @@ function ServiceCard({ node, index, onClick }: ServiceCardProps) {
   return (
     <button
       onClick={onClick}
-      className="group relative flex flex-col items-center gap-5 text-center transition-transform active:scale-[0.97]"
+      className="group relative flex w-full flex-col overflow-hidden rounded-[32px] border border-[var(--mc-dust-taupe)] bg-white p-6 transition-all hover:-translate-y-1 hover:border-[var(--mc-dust-taupe)] hover:shadow-[0px_20px_40px_rgba(0,0,0,0.06)] active:scale-[0.98]"
     >
-      {/* Circle with satellite CTA */}
-      <div className="relative">
-        {/* Main Circle */}
-        <div
-          className="flex h-[180px] w-[180px] items-center justify-center rounded-full shadow-[0px_16px_40px_0px_rgba(207,69,0,0.15)] transition-shadow group-hover:shadow-[0px_20px_48px_0px_rgba(207,69,0,0.25)] sm:h-[220px] sm:w-[220px] lg:h-[260px] lg:w-[260px]"
+      {/* Visual Header: Gradient Icon Box */}
+      <div className="flex items-start justify-between mb-6">
+        <div 
+          className="flex h-16 w-16 items-center justify-center rounded-2xl shadow-lg transition-transform group-hover:scale-110"
           style={{ background: gradient }}
         >
           <NodeIcon
             name={node.icon}
-            className="h-16 w-16 text-white transition-transform group-hover:scale-110 sm:h-20 sm:w-20 lg:h-24 lg:w-24"
+            className="h-8 w-8"
             style={{ color: iconColor }}
           />
         </div>
-
-        {/* Satellite CTA */}
-        <span
-          className="absolute bottom-2 right-2 flex h-[50px] w-[50px] items-center justify-center rounded-full bg-white shadow-[0px_4px_16px_0px_rgba(0,0,0,0.12)] transition-transform group-hover:scale-110 sm:h-[56px] sm:w-[56px] lg:h-[60px] lg:w-[60px]"
-        >
-          <ArrowRight className="h-5 w-5 text-[var(--mc-ink)] sm:h-6 sm:w-6" />
-        </span>
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--mc-canvas)] text-[var(--mc-slate)] opacity-0 transition-opacity group-hover:opacity-100">
+          <ArrowRight className="h-5 w-5" />
+        </div>
       </div>
 
-      {/* Text */}
-      <div className="flex flex-col items-center gap-1.5">
-        {/* Eyebrow */}
-        <span className="mc-eyebrow text-[12px] text-[var(--mc-slate)]">
-          • SERVICIOS
+      {/* Content */}
+      <div className="flex flex-col items-start text-left gap-1">
+        <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--mc-slate)] opacity-70">
+          Categoría
         </span>
-
-        {/* Title */}
-        <h3 className="mc-h3 max-w-[260px]">{node.title}</h3>
-
-        {/* Child count */}
-        {childCount > 0 && (
-          <span className="text-[13px] font-[450] text-[var(--mc-slate)]">
-            {childCount} artículo{childCount !== 1 ? 's' : ''}
-          </span>
-        )}
+        <h3 className="text-xl font-bold tracking-tight text-[var(--mc-ink)]">{node.title}</h3>
+        
+        <div className="mt-4 flex items-center gap-2">
+           <Badge variant="outline" className="rounded-lg border-[var(--mc-dust-taupe)] bg-[var(--mc-canvas)] text-[11px] font-medium text-[var(--mc-slate)]">
+             {childCount} Item{childCount !== 1 ? 's' : ''}
+           </Badge>
+           {index < 3 && (
+             <Badge className="bg-orange-100 text-[var(--mc-light-signal-orange)] border-none text-[10px] h-5">POPULAR</Badge>
+           )}
+        </div>
       </div>
+
+      {/* Subtle background decoration */}
+      <div className="absolute -right-4 -bottom-4 h-24 w-24 rounded-full bg-[var(--mc-canvas)] opacity-50 transition-transform group-hover:scale-150" />
     </button>
   );
 }
 
 /* ---------- Orbital Arc SVG ---------- */
 
-function OrbitalArcs({ count }: { count: number }) {
-  if (count < 2) return null;
-
-  return (
-    <svg
-      className="pointer-events-none absolute inset-0 h-full w-full"
-      viewBox="0 0 1200 600"
-      fill="none"
-      preserveAspectRatio="xMidYMid meet"
-      aria-hidden="true"
-    >
-      {/* Arc between first and second card */}
-      <path
-        d="M 250 300 Q 450 100 650 300"
-        stroke="var(--mc-light-signal-orange)"
-        strokeWidth="1.5"
-        strokeDasharray="8 6"
-        opacity="0.4"
-      />
-      {/* Arc between second and third card */}
-      {count >= 3 && (
-        <path
-          d="M 550 300 Q 750 100 950 300"
-          stroke="var(--mc-light-signal-orange)"
-          strokeWidth="1.5"
-          strokeDasharray="8 6"
-          opacity="0.3"
-        />
-      )}
-      {/* Larger decorative arc */}
-      {count >= 3 && (
-        <path
-          d="M 200 350 Q 600 -50 1000 350"
-          stroke="var(--mc-light-signal-orange)"
-          strokeWidth="1"
-          opacity="0.2"
-        />
-      )}
-      {/* Small orbit circles */}
-      <circle cx="450" cy="150" r="4" fill="var(--mc-light-signal-orange)" opacity="0.3" />
-      <circle cx="750" cy="150" r="4" fill="var(--mc-light-signal-orange)" opacity="0.25" />
-      <circle cx="600" cy="80" r="3" fill="var(--mc-light-signal-orange)" opacity="0.2" />
-    </svg>
-  );
-}
 
 /* ---------- Main Component ---------- */
 
 export default function HomeServices() {
   const { setSelectedNodeId, setView } = useAppStore();
+  const [searchTerm, setSearchTerm] = React.useState('');
 
   const { data, isLoading } = useQuery<{ nodes: ApiNode[] }>({
     queryKey: ['nodes', 'root'],
@@ -176,6 +132,14 @@ export default function HomeServices() {
   });
 
   const rootNodes = data?.nodes || [];
+  
+  const filteredNodes = useMemo(() => {
+    if (!searchTerm) return rootNodes;
+    return rootNodes.filter(n => 
+      n.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      n.icon.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [rootNodes, searchTerm]);
 
   const handleCardClick = (node: ApiNode) => {
     setSelectedNodeId(node.id);
@@ -184,27 +148,21 @@ export default function HomeServices() {
 
   if (isLoading) {
     return (
-      <section className="relative w-full overflow-hidden px-6 py-16 md:px-12 md:py-24">
+      <section className="relative w-full px-6 py-16 md:px-12 md:py-24">
         <div className="mx-auto max-w-[1280px]">
           <div className="mb-12">
             <Skeleton className="mb-3 h-4 w-32" />
-            <Skeleton className="h-10 w-[480px] rounded-[20px] max-md:w-full" />
+            <Skeleton className="h-10 w-[480px] rounded-[20px]" />
           </div>
-          <div className="flex flex-wrap items-start justify-center gap-12 md:gap-16 lg:gap-20">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex flex-col items-center gap-5">
-                <Skeleton className="h-[220px] w-[220px] rounded-full lg:h-[260px] lg:w-[260px]" />
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-6 w-40" />
-              </div>
-            ))}
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+             {[1, 2, 3, 4].map(i => (
+               <Skeleton key={i} className="h-[220px] w-full rounded-[32px]" />
+             ))}
           </div>
         </div>
       </section>
     );
   }
-
-  if (rootNodes.length === 0) return null;
 
   return (
     <section className="relative w-full overflow-hidden px-6 py-16 md:px-12 md:py-24">
@@ -214,21 +172,42 @@ export default function HomeServices() {
         style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
         aria-hidden="true"
       >
-        CONTENT
+        EXPLORER
       </div>
 
       <div className="mx-auto max-w-[1280px]">
-        {/* Section Header */}
-        <div className="mb-16 flex flex-col gap-3 md:mb-20">
-          <span className="mc-eyebrow text-[var(--mc-slate)]">• LO QUE OFRECEMOS</span>
-          <h2 className="mc-h2 max-w-[580px]">Explora nuestro contenido</h2>
+        {/* Section Header & Search */}
+        <div className="mb-12 flex flex-col items-center justify-between gap-8 md:flex-row md:items-end md:mb-16">
+          <div className="flex flex-col gap-3 max-md:text-center">
+            <span className="mc-eyebrow text-[var(--mc-slate)] uppercase tracking-[0.2em]">• Centro de Contenido</span>
+            <h2 className="mc-h2 max-w-[580px]">Nuestro contenido</h2>
+          </div>
+
+          <div className="relative w-full max-w-[400px]">
+             <div className="group relative">
+                <Input
+                  placeholder="¿Qué estás buscando?..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="h-14 rounded-2xl border-[var(--mc-dust-taupe)] bg-white/50 pl-12 pr-12 text-sm transition-all focus:bg-white focus:ring-4 focus:ring-orange-500/5 backdrop-blur-sm"
+                />
+                <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--mc-slate)] transition-colors group-focus-within:text-[var(--mc-light-signal-orange)]" />
+                {searchTerm && (
+                  <button 
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--mc-slate)] hover:text-black"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+             </div>
+          </div>
         </div>
 
-        {/* Cards Grid with Orbital Lines */}
-        <div className="relative">
-          <OrbitalArcs count={rootNodes.length} />
-          <div className="flex flex-wrap items-start justify-center gap-12 md:gap-16 lg:gap-20">
-            {rootNodes.map((node, index) => (
+        {/* Dynamic Grid */}
+        {filteredNodes.length > 0 ? (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filteredNodes.map((node, index) => (
               <ServiceCard
                 key={node.id}
                 node={node}
@@ -237,24 +216,26 @@ export default function HomeServices() {
               />
             ))}
           </div>
-        </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--mc-canvas)] text-[var(--mc-slate)]">
+               <Search className="h-8 w-8" />
+            </div>
+            <h3 className="text-xl font-bold text-[var(--mc-ink)]">No encontramos nada similar</h3>
+            <p className="mt-2 text-[var(--mc-slate)]">Prueba con otras palabras clave o explora las categorías principales.</p>
+            <Button 
+              variant="outline" 
+              onClick={() => setSearchTerm('')}
+              className="mt-6 rounded-xl border-[var(--mc-dust-taupe)]"
+            >
+              Ver todo el contenido
+            </Button>
+          </div>
+        )}
       </div>
 
-      {/* Bottom arc line */}
-      <svg
-        className="absolute bottom-0 left-0 w-full"
-        viewBox="0 0 400 40"
-        fill="none"
-        preserveAspectRatio="none"
-        aria-hidden="true"
-      >
-        <path
-          d="M 0 40 Q 200 -10 400 40"
-          stroke="var(--mc-light-signal-orange)"
-          strokeWidth="1.5"
-          opacity="0.4"
-        />
-      </svg>
+      {/* Decorative gradient sphere */}
+      <div className="absolute -left-20 top-1/2 h-64 w-64 -translate-y-1/2 rounded-full bg-orange-100/30 blur-[100px]" />
     </section>
   );
 }

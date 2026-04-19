@@ -28,7 +28,17 @@ export default function FloatingNav() {
   const isEditor = user && (user.role === 'ADMIN' || user.role === 'EDITOR');
   const isAdmin = user && user.role === 'ADMIN';
 
-  const handleNavClick = (targetView: 'home' | 'content' | 'favorites' | 'admin' | 'admin-users' | 'profile' | 'settings') => {
+  const handleNavClick = (
+    targetView:
+      | 'home'
+      | 'content'
+      | 'favorites'
+      | 'admin'
+      | 'admin-users'
+      | 'profile'
+      | 'settings'
+      | 'nodes-management' // NUEVA VISTA
+  ) => {
     setView(targetView);
     setMobileMenuOpen(false);
   };
@@ -40,13 +50,28 @@ export default function FloatingNav() {
     setMobileMenuOpen(false);
   };
 
-  type NavLinkType = { label: string; target: 'home' | 'content' | 'favorites' | 'admin' | 'admin-users' | 'profile' | 'settings'; active: boolean; disabled?: boolean };
+  type NavLinkType = {
+    label: string;
+    target:
+      | 'home'
+      | 'content'
+      | 'favorites'
+      | 'admin'
+      | 'admin-users'
+      | 'profile'
+      | 'settings'
+      | 'nodes-management';
+    active: boolean;
+    disabled?: boolean;
+  };
 
   const navLinks: NavLinkType[] = [
     { label: 'Inicio', target: 'home', active: view === 'home' },
     { label: 'Contenido', target: 'content', active: view === 'content' },
     ...(user ? [{ label: 'Favoritos', target: 'favorites' as const, active: view === 'favorites' }] : []),
     ...(isEditor ? [{ label: 'Administrar', target: 'admin' as const, active: view === 'admin' || view === 'admin-edit' }] : []),
+    // Nueva opción para gestión de nuevos nodos (Maquetador)
+    ...(isEditor ? [{ label: 'Maquetador', target: 'nodes-management' as const, active: view === 'nodes-management' }] : []),
     ...(isAdmin ? [{ label: 'Usuarios', target: 'admin-users' as const, active: view === 'admin-users' }] : []),
   ];
 

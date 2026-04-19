@@ -47,6 +47,95 @@ function buildBreadcrumb(nodes: ApiNode[], selectedId: string): ApiNode[] {
   return breadcrumb;
 }
 
+/* ---------- Block Renderer ---------- */
+
+const BlockRenderer = ({ data }: { data: string }) => {
+  const blocks = useMemo(() => {
+    try {
+      const parsed = JSON.parse(data);
+      return parsed.blocks || [];
+    } catch (e) {
+      return [];
+    }
+  }, [data]);
+
+  return (
+    <div className="flex flex-col gap-6">
+      {blocks.map((block: any, index: number) => {
+        switch (block.type) {
+          case 'header':
+            const HeaderTag = `h${block.data.level}` as keyof JSX.IntrinsicElements;
+            return <HeaderTag key={index} className="mc-h3 mt-4" dangerouslySetInnerHTML={{ __html: block.data.text }} />;
+          
+          case 'paragraph':
+            return <p key={index} className="mc-body leading-relaxed" dangerouslySetInnerHTML={{ __html: block.data.text }} />;
+          
+          case 'list':
+            const ListTag = block.data.style === 'ordered' ? 'ol' : 'ul';
+            return (
+              <ListTag key={index} className={block.data.style === 'ordered' ? 'list-decimal pl-6 space-y-2' : 'list-disc pl-6 space-y-2'}>
+                {block.data.items.map((item: string, i: number) => (
+                  <li key={i} dangerouslySetInnerHTML={{ __html: item }} />
+                ))}
+              </ListTag>
+            );
+          
+          case 'quote':
+            return (
+              <blockquote key={index} className="border-l-4 border-[var(--mc-light-signal-orange)] pl-6 py-2 bg-[var(--mc-canvas-lifted)] rounded-r-2xl italic">
+                <p dangerouslySetInnerHTML={{ __html: block.data.text }} />
+                {block.data.caption && <cite className="text-[13px] text-[var(--mc-slate)] not-italic mt-2 block">— {block.data.caption}</cite>}
+              </blockquote>
+            );
+
+          case 'checklist':
+            return (
+              <div key={index} className="space-y-2">
+                {block.data.items.map((item: any, i: number) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <input type="checkbox" checked={item.checked} readOnly className="mt-1.5 h-4 w-4 rounded border-[var(--mc-dust-taupe)] text-[var(--mc-light-signal-orange)]" />
+                    <span className={item.checked ? 'text-[var(--mc-slate)] line-through' : ''} dangerouslySetInnerHTML={{ __html: item.text }} />
+                  </div>
+                ))}
+              </div>
+            );
+
+          case 'table':
+            return (
+              <div key={index} className="overflow-x-auto rounded-2xl border border-[var(--mc-dust-taupe)]">
+                <table className="w-full text-left border-collapse">
+                  <tbody>
+                    {block.data.content.map((row: string[], i: number) => (
+                      <tr key={i} className="border-b border-[var(--mc-dust-taupe)] last:border-0">
+                        {row.map((cell: string, j: number) => (
+                           <td key={j} className="p-4 text-[14px]" dangerouslySetInnerHTML={{ __html: cell }} />
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
+
+          case 'delimiter':
+            return <hr key={index} className="my-8 border-t border-[var(--mc-dust-taupe)]" />;
+
+          case 'code':
+            return (
+              <pre key={index} className="bg-[var(--mc-ink)] text-white p-6 rounded-[24px] overflow-x-auto text-[14px]">
+                <code>{block.data.code}</code>
+              </pre>
+            );
+
+          default:
+            console.warn('[AddContent Viewer] Unknown block type:', block.type);
+            return null;
+        }
+      })}
+    </div>
+  );
+};
+
 /* ---------- Main Component ---------- */
 
 export default function ContentViewer() {
@@ -246,15 +335,26 @@ export default function ContentViewer() {
               {/* Divider */}
               <div className="h-px bg-[var(--mc-dust-taupe)]" />
 
-              {/* Rich Markdown Content */}
+              {/* Content Detection & Rendering */}
               {selectedNode.content ? (
                 <div className="node-content">
-                  <ReactMarkdown 
-                    remarkPlugins={[remarkGfm]} 
-                    rehypePlugins={[rehypeRaw]}
-                  >
-                    {selectedNode.content}
-                  </ReactMarkdown>
+                  {(() => {
+                    const content = selectedNode.content;
+                    const isJson = content.trim().startsWith('{') && content.trim().endsWith('}');
+                    
+                    if (isJson) {
+                      return <BlockRenderer data={content} />;
+                    }
+
+                    return (
+                      <ReactMarkdown 
+                        remarkPlugins={[remarkGfm]} 
+                        rehypePlugins={[rehypeRaw]}
+                      >
+                        {content}
+                      </ReactMarkdown>
+                    );
+                  })()}
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-3 rounded-[20px] bg-[var(--mc-canvas-lifted)] py-16 text-center">
